@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="page-header">
+        <h1>Alert
+            <small>for the item '{{ alert.item.name }}'</small>
+        </h1>
+    </div>
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <a class="btn btn-default" href="{{ alert.item.url }}" role="button">Visit Item Site</a>
+            <a class="btn btn-default" href="{{ url_for('alerts.edit_alert', alert_id=alert._id) }}" role="button">Edit
+                Alert</a>
+            {% if alert.active %}
+                <a class="btn btn-danger" href="{{ url_for('alerts.deactivate_alert', alert_id=alert._id) }}"
+                   role="button">Deactivate Alert</a>
+                <a class="btn btn-danger" href="{{ url_for('alerts.delete_alert', alert_id=alert._id) }}" role="button">Permanently
+                    Delete Alert</a>
+            {% else %}
+                <a class="btn btn-success" href="{{ url_for('alerts.activate_alert', alert_id=alert._id) }}"
+                   role="button">Activate Alert</a>
+                <a class="btn btn-danger" href="{{ url_for('alerts.delete_alert', alert_id=alert._id) }}" role="button">Permanently
+                    Delete Alert</a>
+            {% endif %}
+            <a class="btn btn-warning" href="{{ url_for('alerts.check_alert_price', alert_id=alert._id) }}"
+               role="button">Check Price Now</a>
+        </div>
+    </div>
+
+    {% if alert.active %}
+        <p><strong> Active Alert</strong></p>
+        <p>Activated on <strong>{{ alert.last_checked.strftime("%d-%m-%Y %H:%M") }}</strong></p>
+    {% else %}
+        <p><strong>Not Active Alert</strong>.If you want to activate it please click on "Activate Alert" button</p>
+        <p>Deactivated on <strong>{{ alert.deactivate_date.strftime("%d-%m-%Y %H:%M") }}</strong></p>
+    {% endif %}
+    <p>Alert price limit <strong>{{ "{:,.2f}".format(alert.price_limit) }}</strong></p>
+    <p>Last price found <strong>{{ "{:,.2f}".format(alert.item.price) }}</strong></p>
+    <p>Last checked on <strong>{{ alert.last_checked.strftime("%d-%m-%Y %H:%M") }}</strong></p>
+    <div id="chart_div"></div>
+
+    <script type="text/javascript">
+        google.charts.load('current', {'packages': ['corechart']});
+        google.charts.setOnLoadCallback(drawChart);
+
+        function drawChart() {
+            var data = new google.visualization.DataTable();
+            data.addColumn('date', 'Time of the days since the activation');
+            data.addColumn('number', 'Price of the item');
+            data.addColumn('number', 'Price limit for the alert');
+            {% for i in range(0,price_list| length) %}
+                data.addRow([new Date({{ date_list[i].strftime("%Y,%m,%d,%H,%M,%S") }}), {{ price_list[i] }}, {{ alert.price_limit }}]);
+            {% endfor %}
+            var options = {
+                title: 'Price fluctuations of the item since the alert activated',
+                seriesType: "line",
+                series: {
+                    1: {
+                        type: 'line'
+                    }
+                },
+                hAxis: {
+                    ticks: []
+                },
+                vAxis: {
+                    format: '#,##0.00',
+                    title: 'Price'
+                },
+
+                curveType: 'function',
+                pointSize: 5,
+                height: 300,
+                width: 900
+
+
+            };
+            var chart = new google.visualization.ComboChart(document.getElementById('chart_div'));
+            chart.draw(data, options);
+            window.addEventListener('resize', function () {
+                chart.draw(data, options);
+            }, false);
+        }
+    </script>
+
+{% endblock %}

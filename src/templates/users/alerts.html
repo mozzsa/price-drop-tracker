@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="page-header">
+        <h1>Alerts
+            <small>your existing alerts</small>
+        </h1>
+        {% if alerts is not none %}
+        <p>Just click on the alert you want to get more information about</p>
+        {% else %}
+        <p>You haven't created any alerts so far,Please click on the button to create one</p>
+        {% endif %}
+    </div>
+    <div class="list-group">
+        {% for alert in alerts %}
+            <a href="/alerts/{{ alert._id }}"
+               class="list-group-item {{ 'list-group-item-warning' if not alert.active else '' }}">
+                <h4 class="list-group-item-heading">
+                    {{ "<span class='glyphicon glyphicon-remove-circle'></span> " if not alert.active else '' }}
+                    Alert for {{ alert.item.name }}
+                </h4>
+                <p class="list-group-item-text">Last price found
+                    <strong>{{ "{:,.2f}".format(alert.item.price) }}</strong><br/>Last
+                    checked on <strong>{{ alert.last_checked.strftime("%d-%m-%Y %H:%M") }}</strong></p>
+            </a>
+        {% endfor %}
+    </div>
+    <a class="btn btn-success" href="{{ url_for('stores.index') }}"><span
+            class="glyphicon glyphicon-plus"></span> Create new</a>
+{% endblock %}
